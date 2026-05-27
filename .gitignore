@@ -1,0 +1,26 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+.env
+
+# Training artefacts
+runs/
+checkpoints/
+*.pt
+*.bin
+*.safetensors
+
+# Evaluation outputs
+results/
+
+# Local data (top-level only; do not ignore kskt/data which is source)
+/data/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store

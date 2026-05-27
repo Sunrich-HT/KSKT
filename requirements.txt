@@ -1,0 +1,14 @@
+torch>=2.1.0
+transformers>=4.45.0
+tokenizers>=0.20
+accelerate>=0.34
+datasets>=2.20
+sentencepiece>=0.2
+safetensors>=0.4
+numpy>=1.24
+pyyaml>=6.0
+tqdm>=4.66
+# Optional: spaCy + en_core_web_sm for the full preprocessing pipeline
+# spacy>=3.4
+# Optional: SOTOPIA for interactive evaluation
+# sotopia

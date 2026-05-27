@@ -1,0 +1,58 @@
+# KSKT 4B reference configuration. Mirrors Table 4 in the paper (Appendix C.2).
+# All values here can be overridden from the CLI via --config_overrides.
+
+base_model: Qwen/Qwen3-4B-Thinking-2507
+
+model:
+  hidden_size: 2560
+  intermediate_size: 9728
+  num_hidden_layers: 36
+  num_attention_heads: 32
+  num_key_value_heads: 8
+  head_dim: 128
+  max_position_embeddings: 262144
+  rope_theta: 5000000
+  rms_norm_eps: 1.0e-6
+  vocab_size: 151936
+
+kskt:
+  # DSAA replaces standard attention every 4th layer.
+  dsaa_layer_indices: [3, 7, 11, 15, 19, 23, 27, 31, 35]
+  fusion_eps: 1.0e-8
+  attention_bias_init_std: 0.02
+  mupe_hidden_factor: 0.5
+  mupe_temperature: 0.5
+  bipolar_budgets: [2, 4, 6, 8, 10]
+  bipolar_pre_gate_threshold: 0.5
+  bipolar_gate_temperature: 1.0
+  bipolar_post_gate_dropout: 0.1
+  conflict_lambda_fusion: 0.6
+  conflict_lambda_entropy: 0.4
+  num_experts: 4
+  expert_names: [personality, knowledge, emotion, capability]
+  samoe_temperature: 1.0
+  samoe_top_k: 2
+  expert_init_std: 0.01
+
+losses:
+  lambda_consistency: 0.1
+  lambda_understanding: 0.2
+  lambda_balance: 0.01
+
+training:
+  optimizer: AdamW
+  learning_rate: 2.0e-5
+  weight_decay: 0.01
+  grad_clip: 1.0
+  warmup_steps: 500
+  global_batch_size: 128
+  sequence_length: 2048
+  phases:
+    - {name: phase1_self,   epochs: 2, lr: 2.0e-5, schedule: linear}
+    - {name: phase2_other,  epochs: 1, lr: 1.0e-5, schedule: linear}
+    - {name: phase3_mutual, epochs: 1, lr: 5.0e-6, schedule: cosine}
+
+hardware:
+  gpus: 8
+  precision: bf16
+  gradient_accumulation_steps: 4
