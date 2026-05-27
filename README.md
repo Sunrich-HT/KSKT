@@ -247,8 +247,3 @@ Companion work (cross-turn persona consistency):
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE).
-
-## Contact
-
-- Haotong Sun — richsun821@gmail.com
-- Yinghui Jiang (corresponding) — yinghui@infindeep.com
