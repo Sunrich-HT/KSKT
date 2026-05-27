@@ -34,33 +34,17 @@ Concurrent companion paper: [**BRIDGE**](https://github.com/Sunrich-HT/BRIDGE) �
 
 ## Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│  Input: Role description R   +   User query U   +   Dialogue history    │
-└──────────────────────────────────────────────────────────────────────────┘
-                                  │
-                                  ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│ Input Processing Pipeline → R_proc, U_proc       (kskt/data/preprocessing.py)
-└──────────────────────────────────────────────────────────────────────────┘
-                                  │
-                                  ▼
-        For each transformer layer (DSAA at layers 4, 8, …, 36):
-        ┌──────────────────────────────────────────────────────────┐
-        │ 1) Dual-Stream Axial Attention   (kskt/dsaa.py)         │
-        │    A_self, A_other  →  α ⊙ V_self + β ⊙ V_other         │
-        │                                                          │
-        │ 2) Bipolar Reasoning             (kskt/bipolar.py)      │
-        │    Pre-gate → [Fast FFN] or [Fast + ThinkingChain]      │
-        │    Post-gate fuses fast + slow                          │
-        │                                                          │
-        │ 3) Self-Awareness MoE            (kskt/samoe.py)        │
-        │    Character-conditioned router → top-k experts         │
-        └──────────────────────────────────────────────────────────┘
-                                  │
-                                  ▼
-                       lm_head → next-token logits
-```
+<p align="center">
+  <img src="assets/kskt_architecture.png" alt="KSKT architecture overview" width="100%"/>
+</p>
+
+KSKT processes role-playing dialogues through four integrated components
+(Figure 1 in the paper):
+
+1. **Input Processing Pipeline** — extracts role context `R_proc` and user intent `U_proc`.
+2. **Dual-Stream Axial Attention** — separately models the *self*-understanding and *other*-understanding streams, then fuses them with token-level weights satisfying α + β = 1.
+3. **Bipolar Reasoning** — combines a fast intuitive pathway (System-1) with a slow deliberative ThinkingChain (System-2); a two-stage gate decides when to invoke deliberation and at what budget T ∈ {2,4,6,8,10}.
+4. **Self-Awareness Mixture of Experts** — routes to Personality (P), Knowledge (K), Emotion (E), and Capability (C) specialists.
 
 Algorithm 1 in the paper summarises the exact forward pass; the
 corresponding Python is in [`kskt/modeling_kskt.py`](kskt/modeling_kskt.py).
