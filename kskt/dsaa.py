@@ -164,12 +164,13 @@ class DualStreamAxialAttention(nn.Module):
         user_mask: torch.Tensor,
         role_repr: Optional[torch.Tensor] = None,
         user_repr: Optional[torch.Tensor] = None,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """Returns (output, alpha, beta).
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Returns (output, alpha, beta, h_self, h_other).
 
         alpha, beta are token-level mixing weights with α + β = 1 and α,β ≥ 0.
-        They are kept on the returned tuple so downstream auxiliary losses
-        (conflict score, balance probes) can consume them without recompute.
+        h_self and h_other are the per-stream attention outputs *before*
+        fusion -- exposed so the linear-probing analysis can read them
+        directly without re-running attention.
         """
         if self.mupe is not None and role_repr is not None and user_repr is not None:
             hidden_states = self.mupe(hidden_states, role_repr, user_repr)
@@ -185,4 +186,4 @@ class DualStreamAxialAttention(nn.Module):
         beta = 1.0 - alpha
 
         out = alpha * h_self + beta * h_other
-        return out, alpha, beta
+        return out, alpha, beta, h_self, h_other

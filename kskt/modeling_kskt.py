@@ -65,7 +65,7 @@ class KSKTLayer(nn.Module):
     ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor]]:
         # ---- DSAA ----
         residual = hidden_states
-        h, alpha, beta = self.dsaa(
+        h, alpha, beta, h_self, h_other = self.dsaa(
             self.attn_norm(hidden_states),
             cos=cos, sin=sin,
             attention_mask=attention_mask,
@@ -87,8 +87,10 @@ class KSKTLayer(nn.Module):
         aux = {
             "alpha": alpha,
             "beta": beta,
-            "h_self": h - beta * brm_aux["h_fast"],  # rough probe handle for analysis
-            "h_other": h - alpha * brm_aux["h_fast"],
+            # Per-stream attention outputs *before* fusion -- used by the
+            # linear-probing eval (Table 3 cross-dissociation).
+            "h_self": h_self,
+            "h_other": h_other,
             "budget_logits": brm_aux["budget_logits"],
             "routing_probs": samoe_aux["routing_probs"],
             "routing_entropy": samoe_aux["routing_entropy"],
@@ -314,7 +316,7 @@ class KSKTForCausalLM(nn.Module):
                 layer.gate_proj.weight.copy_(src_state[prefix + "mlp.gate_proj.weight"])
                 layer.up_proj.weight.copy_(src_state[prefix + "mlp.up_proj.weight"])
                 layer.down_proj.weight.copy_(src_state[prefix + "mlp.down_proj.weight"])
-            except KeyError as e:
+            except KeyError:
                 # Newer Qwen3 releases differ in QK-Norm naming; skip silently
                 # and rely on phase-1 training to recover.
                 continue
